@@ -225,7 +225,7 @@ def calculate_fittings_cost(pipe_size: float, pipe_cost: float) -> float:
         joints_df = joints_df.copy()
 
         # Convert to numeric
-        joints_df.iloc[:, 0] = joints_df.iloc[:, 0].apply(universal_float_convert)  # Pipe size
+        joints_df.isetitem(0, joints_df.iloc[:, 0].apply(universal_float_convert).astype(float))  # Pipe size
 
         # Look for matching pipe size
         pipe_size_int = int(pipe_size)
@@ -319,8 +319,8 @@ def calculate_valve_costs(system_data: Dict) -> Dict:
         cvalv_df = get_csv_data('CVALV')
         if cvalv_df is not None:
             cvalv_df = cvalv_df.copy()
-            cvalv_df.iloc[:, 0] = cvalv_df.iloc[:, 0].apply(universal_float_convert)
-            cvalv_df.iloc[:, 1] = cvalv_df.iloc[:, 1].apply(universal_float_convert)
+            cvalv_df.isetitem(0, cvalv_df.iloc[:, 0].apply(universal_float_convert).astype(float))
+            cvalv_df.isetitem(1, cvalv_df.iloc[:, 1].apply(universal_float_convert).astype(float))
 
             pipe_size_int = int(primary_pipe_size)
             for idx, row in cvalv_df.iterrows():
@@ -333,8 +333,8 @@ def calculate_valve_costs(system_data: Dict) -> Dict:
         ivalv_df = get_csv_data('IVALV')
         if ivalv_df is not None:
             ivalv_df = ivalv_df.copy()
-            ivalv_df.iloc[:, 0] = ivalv_df.iloc[:, 0].apply(universal_float_convert)
-            ivalv_df.iloc[:, 1] = ivalv_df.iloc[:, 1].apply(universal_float_convert)
+            ivalv_df.isetitem(0, ivalv_df.iloc[:, 0].apply(universal_float_convert).astype(float))
+            ivalv_df.isetitem(1, ivalv_df.iloc[:, 1].apply(universal_float_convert).astype(float))
 
             pipe_size_int = int(primary_pipe_size)
             for idx, row in ivalv_df.iterrows():

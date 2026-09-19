@@ -250,7 +250,7 @@ def check_required_files():
     
     # Check CSV files
     csv_files = [
-        'ALLHX.csv', 'CVALV.csv', 'HX.csv', 'IVALV.csv', 'JOINTS.csv',
+        'ALLHX.csv', 'CVALV.csv', 'IVALV.csv', 'JOINTS.csv',
         'MW Price Data.csv', 'PIPCOST.csv', 'PIPSZ.csv', 'ROOM.csv'
     ]
     

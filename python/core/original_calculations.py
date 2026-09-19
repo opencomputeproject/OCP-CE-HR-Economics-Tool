@@ -149,8 +149,8 @@ def get_PipeSize_Suggested(F1):
         
         # Convert columns to numeric
         pipsz_df = pipsz_df.astype(float)  # Convert DataFrame to float
-        pipsz_df.iloc[:, 0] = pipsz_df.iloc[:, 0].apply(universal_float_convert)  # Flow capacity
-        pipsz_df.iloc[:, 1] = pipsz_df.iloc[:, 1].apply(universal_float_convert)  # Pipe size
+        pipsz_df.isetitem(0, pipsz_df.iloc[:, 0].apply(universal_float_convert).astype(float))  # Flow capacity
+        pipsz_df.isetitem(1, pipsz_df.iloc[:, 1].apply(universal_float_convert).astype(float))  # Pipe size
         
         # Remove invalid rows
         valid_rows = pipsz_df.dropna()
@@ -219,8 +219,8 @@ def get_PipeLength(F1, T1, T2):
         # Convert to numeric and find appropriate length
         room_df = room_df.copy()
         room_df = room_df.astype(float)  # Convert DataFrame to float
-        room_df.iloc[:, 0] = room_df.iloc[:, 0].apply(universal_float_convert)  # wha capacity
-        room_df.iloc[:, 1] = room_df.iloc[:, 1].apply(universal_float_convert)  # Length
+        room_df.isetitem(0, room_df.iloc[:, 0].apply(universal_float_convert).astype(float))  # wha capacity
+        room_df.isetitem(1, room_df.iloc[:, 1].apply(universal_float_convert).astype(float))  # Length
         
         # Find ceiling match
         adequate_rows = room_df[room_df.iloc[:, 0] >= wha]
@@ -265,11 +265,11 @@ def get_PipeCost_perMeter(flow_rate, pipe_type):
             
         # Convert to numeric
         pipcost_df = pipcost_df.copy()
-        pipcost_df.iloc[:, 0] = pipcost_df.iloc[:, 0].apply(universal_float_convert)  # Pipe size
+        pipcost_df.isetitem(0, pipcost_df.iloc[:, 0].apply(universal_float_convert).astype(float))  # Pipe size
         
         # Determine column index based on pipe type
         col_index = 1 if pipe_type.lower() == "stainless" else 2
-        pipcost_df.iloc[:, col_index] = pipcost_df.iloc[:, col_index].apply(universal_float_convert)
+        pipcost_df.isetitem(col_index, pipcost_df.iloc[:, col_index].apply(universal_float_convert).astype(float))
         
         # Convert European DN size to match PIPCOST data format
         # Option 1: Try direct DN match first
@@ -416,8 +416,8 @@ def get_system_sizing(system_data):
             room_df = room_df.copy()
             # Convert columns to numeric
             room_df = room_df.astype(float)  # Convert DataFrame to float
-            room_df.iloc[:, 0] = room_df.iloc[:, 0].apply(universal_float_convert)  # wha column
-            room_df.iloc[:, 1] = room_df.iloc[:, 1].apply(universal_float_convert)  # Room size column
+            room_df.isetitem(0, room_df.iloc[:, 0].apply(universal_float_convert).astype(float))  # wha column
+            room_df.isetitem(1, room_df.iloc[:, 1].apply(universal_float_convert).astype(float))  # Room size column
             
             for idx, row in room_df.iterrows():
                 wha = row.iloc[0]

@@ -181,7 +181,6 @@ def check_csv_files():
     required_csvs = [
         'ALLHX.csv',
         'CVALV.csv', 
-        'HX.csv',
         'IVALV.csv',
         'JOINTS.csv',
         'MW Price Data.csv',
