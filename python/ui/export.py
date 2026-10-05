@@ -53,6 +53,11 @@ def _create_download_link(data: bytes, filename: str, mime_type: str) -> str:
 # CSV EXPORT
 # =============================================================================
 
+# The CSV shows CapEx in euros, so it gets its own wording of the CapEx note
+CAPEX_CSV_NOTE = ("CapEx = Capital Estimate: equipment x 1.15 installation x 1.10 engineering x 1.10 contingency, "
+                  "rounded to €500. Not comparable with the QUICK ESTIMATE above.")
+
+
 def export_system_data_csv(analysis: dict) -> bytes:
     """
     Export comprehensive analysis data to CSV format.
@@ -97,7 +102,8 @@ def export_system_data_csv(analysis: dict) -> bytes:
     all_rows.append({'Section': 'System Parameters', 'Parameter': 'Temperature Rise', 'Value': temp_rise, 'Unit': '°C'})
     all_rows.append({'Section': 'System Parameters', 'Parameter': 'Approach Temperature', 'Value': current_approach, 'Unit': '°C'})
     all_rows.append({'Section': 'Sizing', 'Parameter': 'Primary Pipe Size', 'Value': sizing.get('primary_pipe_size', ''), 'Unit': 'DN'})
-    all_rows.append({'Section': 'Sizing', 'Parameter': 'Pipe Run Length', 'Value': sizing.get('room_size', ''), 'Unit': 'm'})
+    all_rows.append({'Section': 'Sizing', 'Parameter': 'Pipe Length Used', 'Value': float(costs.get('total_pipe_length', 0)), 'Unit': 'm'})
+    all_rows.append({'Section': 'Sizing', 'Parameter': 'Room Size', 'Value': sizing.get('room_size', ''), 'Unit': 'm²'})
 
     # =========================================================================
     # SECTION 2: Cost Breakdown for Current Configuration
@@ -106,14 +112,11 @@ def export_system_data_csv(analysis: dict) -> bytes:
     all_rows.append({'Section': 'COST BREAKDOWN (Current Config)', 'Parameter': '', 'Value': '', 'Unit': ''})
     all_rows.append({'Section': 'Equipment', 'Parameter': 'Heat Exchanger', 'Value': costs.get('hx_cost', 0), 'Unit': '€'})
     all_rows.append({'Section': 'Equipment', 'Parameter': 'Piping', 'Value': costs.get('total_pipe_cost', 0), 'Unit': '€'})
-    all_rows.append({'Section': 'Equipment', 'Parameter': 'Fittings', 'Value': costs.get('fittings_cost', 0), 'Unit': '€'})
+    all_rows.append({'Section': 'Equipment', 'Parameter': 'Fittings (not in quick estimate)', 'Value': costs.get('fittings_cost', 0), 'Unit': '€'})
     all_rows.append({'Section': 'Equipment', 'Parameter': 'Valves', 'Value': costs.get('total_valve_cost', 0), 'Unit': '€'})
     all_rows.append({'Section': 'Equipment', 'Parameter': 'Pump', 'Value': costs.get('pump_cost', 0), 'Unit': '€'})
-    all_rows.append({'Section': 'Equipment', 'Parameter': 'Instrumentation', 'Value': costs.get('instrumentation', 0), 'Unit': '€'})
     all_rows.append({'Section': 'Soft Costs', 'Parameter': 'Installation', 'Value': costs.get('installation_cost', 0), 'Unit': '€'})
-    all_rows.append({'Section': 'Soft Costs', 'Parameter': 'Engineering', 'Value': costs.get('engineering_cost', 0), 'Unit': '€'})
-    all_rows.append({'Section': 'Soft Costs', 'Parameter': 'Contingency', 'Value': costs.get('contingency_cost', 0), 'Unit': '€'})
-    all_rows.append({'Section': 'TOTAL', 'Parameter': 'TOTAL CAPITAL COST', 'Value': costs.get('total_cost', 0), 'Unit': '€'})
+    all_rows.append({'Section': 'TOTAL', 'Parameter': 'QUICK ESTIMATE (excludes fittings, instrumentation, engineering, contingency)', 'Value': costs.get('total_cost', 0), 'Unit': '€'})
 
     if 'operating_cost_eur_year' in costs:
         all_rows.append({'Section': 'Operating', 'Parameter': 'Annual Operating Cost', 'Value': costs.get('operating_cost_eur_year', 0), 'Unit': '€/year'})
@@ -123,6 +126,7 @@ def export_system_data_csv(analysis: dict) -> bytes:
     # =========================================================================
     all_rows.append({'Section': '', 'Parameter': '', 'Value': '', 'Unit': ''})
     all_rows.append({'Section': 'APPROACH TEMPERATURE COMPARISON', 'Parameter': f'(Fixed: {wha} MW capacity)', 'Value': '', 'Unit': ''})
+    all_rows.append({'Section': 'Note', 'Parameter': CAPEX_CSV_NOTE, 'Value': '', 'Unit': ''})
 
     try:
         from .advanced_economics import generate_approach_comparison_data
@@ -140,7 +144,7 @@ def export_system_data_csv(analysis: dict) -> bytes:
             for d in approach_data:
                 all_rows.append({
                     'Section': f"Approach {d['approach']}°C",
-                    'Parameter': 'CapEx',
+                    'Parameter': 'CapEx (Capital Estimate)',
                     'Value': round(d['capex_eur'], 0),
                     'Unit': '€'
                 })
@@ -182,6 +186,7 @@ def export_system_data_csv(analysis: dict) -> bytes:
     # =========================================================================
     all_rows.append({'Section': '', 'Parameter': '', 'Value': '', 'Unit': ''})
     all_rows.append({'Section': 'ECONOMY OF SCALE ANALYSIS', 'Parameter': '(Fixed: 3°C approach)', 'Value': '', 'Unit': ''})
+    all_rows.append({'Section': 'Note', 'Parameter': CAPEX_CSV_NOTE, 'Value': '', 'Unit': ''})
 
     try:
         from .advanced_economics import generate_capacity_comparison_data
@@ -191,7 +196,7 @@ def export_system_data_csv(analysis: dict) -> bytes:
             for d in capacity_data:
                 all_rows.append({
                     'Section': f"Capacity {d['capacity_mw']} MW",
-                    'Parameter': 'CapEx',
+                    'Parameter': 'CapEx (Capital Estimate)',
                     'Value': round(d['capex_eur'], 0),
                     'Unit': '€'
                 })
@@ -236,7 +241,8 @@ def export_system_data_csv(analysis: dict) -> bytes:
     # Convert to CSV bytes
     csv_buffer = io.StringIO()
     df.to_csv(csv_buffer, index=False)
-    return csv_buffer.getvalue().encode('utf-8')
+    # utf-8-sig adds a byte order mark so Excel on Windows shows °C and € correctly
+    return csv_buffer.getvalue().encode('utf-8-sig')
 
 
 # =============================================================================
