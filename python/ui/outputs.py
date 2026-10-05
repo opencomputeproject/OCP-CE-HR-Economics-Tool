@@ -241,7 +241,7 @@ def no_data_message(approach, available):
 def display_no_data_error(output_area, approach=None):
     """
     Display error when no data is found for selected parameters.
-
+    
     Args:
         output_area: Output widget to display in
         approach: Selected approach temperature in °C, if known
