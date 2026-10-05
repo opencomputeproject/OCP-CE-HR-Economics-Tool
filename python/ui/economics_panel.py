@@ -171,9 +171,9 @@ def create_economics_comparison_table(wha: float, T1: float, temp_rise: float) -
 
     # Contingency rows
     contingency_rows = [
-        ('Installation (15%)', 'installation_cost', 'Labor and materials for equipment installation'),
-        ('Engineering (10%)', 'engineering_cost', 'Design, engineering, and project management'),
-        ('Contingency (10%)', 'contingency_cost', 'Unforeseen costs and scope changes'),
+        ('Installation (15% of equipment)', 'installation_cost', 'Labor and materials for equipment installation'),
+        ('Engineering (10% of equipment + installation)', 'engineering_cost', 'Design, engineering, and project management'),
+        ('Contingency (10% of the running total)', 'contingency_cost', 'Unforeseen costs and scope changes'),
     ]
 
     for idx, (row_label, key, tooltip) in enumerate(contingency_rows):
@@ -222,10 +222,10 @@ def create_economics_comparison_table(wha: float, T1: float, temp_rise: float) -
                 </tr>
     """
 
-    # CAPITAL TOTAL row (highlighted and bold) - using gradient for visibility
+    # CAPITAL ESTIMATE row (highlighted and bold) - using gradient for visibility
     html += """
                 <tr style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); font-weight: bold; font-size: 15px;">
-                    <td style="padding: 16px 15px; color: white; text-transform: uppercase; font-weight: 700;">CAPITAL TOTAL</td>
+                    <td style="padding: 16px 15px; color: white; text-transform: uppercase; font-weight: 700;">CAPITAL ESTIMATE (rounded to €500)</td>
     """
 
     for approach in ['2C', '3C', '5C']:
@@ -376,14 +376,14 @@ def create_cost_contrast_chart(wha: float, T1: float, temp_rise: float, output_a
 
     # Plot both lines
     plt.plot(approaches, capital_costs, marker='o', linewidth=2, markersize=8,
-             label='Capital Cost', color='#2196F3')
+             label='Capital Estimate', color='#2196F3')
     plt.plot(approaches, operating_costs, marker='s', linewidth=2, markersize=8,
              label='Annual Operating Cost', color='#FF9800')
 
     # Formatting
     plt.xlabel('Approach Temperature (°C)', fontsize=12, fontweight='bold')
     plt.ylabel('Cost (€)', fontsize=12, fontweight='bold')
-    plt.title('Cost Contrast: Capital vs Operating Cost', fontsize=14, fontweight='bold', pad=20)
+    plt.title('Cost Contrast: Capital Estimate vs Operating Cost', fontsize=14, fontweight='bold', pad=20)
     plt.legend(loc='best', fontsize=11, frameon=True, shadow=True)
     plt.grid(True, alpha=0.3, linestyle='--')
 

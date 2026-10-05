@@ -612,7 +612,10 @@ def create_summary_cards_html(wha, total_cost, cost_per_mw, effectiveness, ratin
                     💰 Investment Summary
                 </div>
                 <div style="margin-bottom: 12px; color: #000000; font-weight: 500;">
-                    Total Cost: <span style="color: #00C853; font-weight: bold; font-size: 18px;">€{total_cost:,.0f}</span>
+                    Quick Estimate: <span style="color: #00C853; font-weight: bold; font-size: 18px;">€{total_cost:,.0f}</span>
+                    <div style="color: #555555; font-size: 12px; font-weight: 400; margin-top: 4px;">
+                        Heat exchanger, pipe, valves, pumps at €5,000 per MW and a €10,000 installation allowance. Excludes fittings, instrumentation, engineering and contingency.
+                    </div>
                 </div>
                 <div style="margin-bottom: 12px; color: #000000; font-weight: 500;">
                     Cost/MW: <span style="color: #00C853; font-weight: bold;">€{cost_per_mw:,.0f}</span>
