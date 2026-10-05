@@ -365,7 +365,7 @@ def _render_economics_comparison_table(ax, comparison_data: dict, title: str):
 
     Args:
         ax: Matplotlib axis
-        comparison_data: Dictionary with '2C', '3C', '5C' keys
+        comparison_data: The 'approaches' dict from compare_approaches, with '2C', '3C', '5C' keys
         title: Table title
     """
     ax.axis('off')
@@ -384,21 +384,22 @@ def _render_economics_comparison_table(ax, comparison_data: dict, title: str):
         'Valves (€)',
         '─────────────',
         'Equipment Subtotal (€)',
-        'Installation (€)',
-        'Engineering (€)',
-        'Contingency (€)',
+        'Installation, 15% of equipment (€)',
+        'Engineering, 10% of equipment + installation (€)',
+        'Contingency, 10% of running total (€)',
         '═════════════',
-        'TOTAL CAPITAL (€)',
+        'CAPITAL ESTIMATE, rounded to €500 (€)',
         'OpEx (€/yr)'
     ]
 
     keys = [
         'heat_exchanger', 'pumps', 'pipe_fittings', 'instrumentation', 'valves',
         None,  # separator
-        'equipment_subtotal', 'installation', 'engineering', 'contingency',
+        'equipment_subtotal', 'installation_cost', 'engineering_cost', 'contingency_cost',
         None,  # separator
-        'total_capital', 'opex'
+        'capital_total', 'operating_cost_eur_year'
     ]
+    equipment_keys = ['heat_exchanger', 'pumps', 'pipe_fittings', 'instrumentation', 'valves']
 
     cell_text = []
     cell_colors = []
@@ -411,12 +412,19 @@ def _render_economics_comparison_table(ax, comparison_data: dict, title: str):
         else:
             row = [label]
             for approach in ['2C', '3C', '5C']:
-                val = comparison_data.get(approach, {}).get(key, 0)
+                data = comparison_data.get(approach, {})
+                if key == 'equipment_subtotal':
+                    val = sum(data.get(k, 0) for k in equipment_keys)
+                elif key == 'valves':
+                    # Rounded to the nearest 100, as on screen (economics_panel.py)
+                    val = round(data.get(key, 0) / 100) * 100
+                else:
+                    val = data.get(key, 0)
                 row.append(f'€{val:,.0f}')
             cell_text.append(row)
 
             # Highlight total row
-            if 'TOTAL' in label:
+            if key == 'capital_total':
                 cell_colors.append(['#C8E6C9'] * 4)
             else:
                 cell_colors.append(['white' if i % 2 == 0 else '#ECEFF1'] * 4)
@@ -426,6 +434,7 @@ def _render_economics_comparison_table(ax, comparison_data: dict, title: str):
         colLabels=['Cost Component', '2°C', '3°C', '5°C'],
         cellColours=cell_colors,
         colColours=['#667eea'] * 4,
+        colWidths=[0.37, 0.21, 0.21, 0.21],  # wide enough for the longest row label
         cellLoc='right',
         loc='center',
         bbox=[0, 0, 1, 0.85]
@@ -518,16 +527,16 @@ def export_charts_png(analysis: dict, dpi: int = None) -> bytes:
         ('TCS Flow Rate (F1)', f"{system.get('F1', '')} L/min"),
         ('FWS Flow Rate (F2)', f"{system.get('F2', '')} L/min"),
         ('Primary Pipe Size', f"DN{sizing.get('primary_pipe_size', '')}"),
-        ('Pipe Run Length', f"{sizing.get('room_size', '')} m"),
+        ('Pipe Length Used', f"{float(costs.get('total_pipe_length', 0)):.1f} m"),
+        ('Room Size', f"{sizing.get('room_size', '')} m²"),
     ]
     _render_simple_table(ax_sys_params, sys_params_rows, 'System Parameters (Auto-Calculated)', '#667eea')
 
     # Piping Cost Analysis table
     piping_rows = [
-        ('Primary Piping', f"€{costs.get('primary_pipe_cost', 0):,.0f}"),
-        ('Secondary Piping', f"€{costs.get('secondary_pipe_cost', 0):,.0f}"),
-        ('Fittings (25%)', f"€{costs.get('fittings_cost', 0):,.0f}"),
-        ('Valves', f"€{costs.get('total_valve_cost', 0):,.0f}"),
+        ('Total Pipe Cost', f"€{costs.get('total_pipe_cost', 0):,.0f}"),
+        ('Fittings', f"€{costs.get('fittings_cost', 0):,.0f}"),
+        ('Valve Costs', f"€{costs.get('total_valve_cost', 0):,.0f}"),
         ('─────────', '─────────'),
         ('TOTAL PIPING', f"€{costs.get('total_pipe_cost', 0) + costs.get('fittings_cost', 0) + costs.get('total_valve_cost', 0):,.0f}"),
     ]
@@ -542,7 +551,7 @@ def export_charts_png(analysis: dict, dpi: int = None) -> bytes:
     try:
         from .economics_panel import compare_approaches
         econ_comparison = compare_approaches(wha, T1, temp_rise)
-        _render_economics_comparison_table(ax_econ_compare, econ_comparison,
+        _render_economics_comparison_table(ax_econ_compare, econ_comparison.get('approaches', {}),
                                           f'Economics Analysis - Order of Magnitude Estimate ({wha} MW)')
     except Exception as e:
         ax_econ_compare.axis('off')
@@ -647,13 +656,13 @@ def export_charts_png(analysis: dict, dpi: int = None) -> bytes:
 
             # Plot both lines
             ax_contrast.plot(approach_vals, capital_costs, marker='o', linewidth=2, markersize=8,
-                            label='Capital Cost', color='#2196F3')
+                            label='Capital Estimate', color='#2196F3')
             ax_contrast.plot(approach_vals, operating_costs, marker='s', linewidth=2, markersize=8,
                             label='Annual Operating Cost', color='#FF9800')
 
             ax_contrast.set_xlabel('Approach Temperature (°C)', fontsize=11, fontweight='bold')
             ax_contrast.set_ylabel('Cost (€)', fontsize=11)
-            ax_contrast.set_title('Cost Contrast Analysis: Capital vs Operating Cost', fontsize=12, fontweight='bold')
+            ax_contrast.set_title('Cost Contrast Analysis: Capital Estimate vs Operating Cost', fontsize=12, fontweight='bold')
             ax_contrast.legend(loc='best', fontsize=10, frameon=True)
             ax_contrast.grid(True, alpha=0.3, linestyle='--')
             ax_contrast.set_xticks(approach_vals)
@@ -738,7 +747,8 @@ def export_charts_png(analysis: dict, dpi: int = None) -> bytes:
     try:
         from .advanced_economics import (
             generate_approach_comparison_data,
-            generate_capacity_comparison_data
+            generate_capacity_comparison_data,
+            CAPEX_NOTE
         )
 
         # Get data (using default 5yr payback, 8760 hours)
@@ -913,7 +923,8 @@ def export_charts_png(analysis: dict, dpi: int = None) -> bytes:
         # -----------------------------------------------------------------
         ax_footer = fig.add_subplot(gs[10, :])
         ax_footer.axis('off')
-        footer_text = "Benchmarks: Natural Gas €0.05/kWh | EU Industrial Electricity €0.15/kWh | Green highlight = optimal (lowest Total Annualized Cost)"
+        footer_text = ("Benchmarks: Natural Gas €0.05/kWh | EU Industrial Electricity €0.15/kWh | Green highlight = optimal (lowest Total Annualized Cost)\n"
+                       + CAPEX_NOTE)
         ax_footer.text(0.5, 0.5, footer_text, ha='center', va='center', fontsize=9, color='#666',
                       style='italic')
 
