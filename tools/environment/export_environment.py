@@ -201,15 +201,8 @@ def get_git_info():
         else:
             git_info["version"] = "Git not found"
         
-        # Git config
-        result = subprocess.run(["git", "config", "--list"], 
-                              capture_output=True, text=True)
-        if result.returncode == 0:
-            config_lines = result.stdout.strip().split('\n')
-            git_info["config"] = [line for line in config_lines if line.strip()]
-        else:
-            git_info["config"] = "Could not get Git config"
-        
+        # Git config is deliberately not recorded: this file is shared between
+        # machines, and git config can hold names, emails and credential settings.
         return git_info
     except Exception as e:
         return {"error": f"Error getting Git info: {str(e)}"}
@@ -296,12 +289,12 @@ def export_environment(machine_name=None):
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(environment_data, f, indent=2, ensure_ascii=False)
         
-        print(f"✓ Environment exported to: {filename}")
+        print(f"[PASS] Environment exported to: {filename}")
         
         # Also create a human-readable summary
         summary_filename = exports_dir / f"{machine_name}_summary_{timestamp}.txt"
         create_summary_file(environment_data, summary_filename)
-        print(f"✓ Summary created: {summary_filename}")
+        print(f"[PASS] Summary created: {summary_filename}")
         
         # Print quick ipykernel status
         print_ipykernel_status(environment_data.get('ipykernel_info', {}))
@@ -309,7 +302,7 @@ def export_environment(machine_name=None):
         return str(filename)
         
     except Exception as e:
-        print(f"✗ Error saving environment: {str(e)}")
+        print(f"[FAIL] Error saving environment: {str(e)}")
         return None
 
 def print_ipykernel_status(ipykernel_info):
@@ -319,24 +312,24 @@ def print_ipykernel_status(ipykernel_info):
     print("="*30)
     
     if ipykernel_info.get('package_installed'):
-        print(f"✓ ipykernel package: v{ipykernel_info.get('version', 'Unknown')}")
+        print(f"[PASS] ipykernel package: v{ipykernel_info.get('version', 'Unknown')}")
     else:
-        print("✗ ipykernel package: NOT INSTALLED")
-    
+        print("[FAIL] ipykernel package: NOT INSTALLED")
+
     if ipykernel_info.get('install_command_works'):
-        print("✓ ipykernel install command: Available")
+        print("[PASS] ipykernel install command: Available")
     else:
-        print("✗ ipykernel install command: NOT WORKING")
-    
+        print("[FAIL] ipykernel install command: NOT WORKING")
+
     if ipykernel_info.get('heat_reuse_kernel_registered'):
-        print("✓ Heat Reuse Tool kernel: Registered")
+        print("[PASS] Heat Reuse Tool kernel: Registered")
     else:
-        print("✗ Heat Reuse Tool kernel: NOT REGISTERED")
-    
+        print("[FAIL] Heat Reuse Tool kernel: NOT REGISTERED")
+
     if ipykernel_info.get('jupyter_available'):
-        print("✓ Jupyter kernelspec: Available")
+        print("[PASS] Jupyter kernelspec: Available")
     else:
-        print("✗ Jupyter kernelspec: NOT AVAILABLE")
+        print("[FAIL] Jupyter kernelspec: NOT AVAILABLE")
     
     if ipykernel_info.get('errors'):
         print("\nErrors found:")
@@ -426,12 +419,12 @@ def main():
     exported_file = export_environment(machine_name)
     
     if exported_file:
-        print(f"\n✓ Environment export completed successfully!")
+        print(f"\n[PASS] Environment export completed successfully!")
         print(f"Files saved in: tools/environment/exports/")
         print(f"\nTo compare with another machine:")
         print(f"python tools/environment/compare_environments.py {exported_file} [other_file]")
     else:
-        print("\n✗ Environment export failed!")
+        print("\n[FAIL] Environment export failed!")
         sys.exit(1)
 
 if __name__ == "__main__":

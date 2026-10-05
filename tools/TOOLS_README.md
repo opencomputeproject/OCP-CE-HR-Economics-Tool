@@ -80,7 +80,7 @@ python tools/setup/verify_setup.py export # Export environment details
 - All installed Python packages with versions
 - Jupyter configuration and kernels
 - VSCode extensions
-- Git configuration
+- Git version
 - Project file structure
 - Required Heat Reuse Tool files status
 
