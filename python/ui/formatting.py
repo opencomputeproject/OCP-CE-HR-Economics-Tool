@@ -295,6 +295,7 @@ def extract_formatted_cost_analysis(costs_data, sizing_data):
     """
     return [
         ("Room Size:", format_display_value(sizing_data['room_size'], 'room_size', True, ' m²')),
+        ("Pipe Length Used:", format_display_value(costs_data['total_pipe_length'], 'room_size', True, ' m')),
         ("Suggested Pipe Size:", f"DN{format_display_value(sizing_data['primary_pipe_size'], 'pipe_size', False)}"),
         ("Pipe Cost per Meter:", f"€{format_display_value(costs_data['pipe_cost_per_meter'], 'pipe_cost_per_meter', False)}/m"),
         ("Total Pipe Cost:", f"€{format_display_value(costs_data['total_pipe_cost'], 'total_pipe_cost', False)}"),
