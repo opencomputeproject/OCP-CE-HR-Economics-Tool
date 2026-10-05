@@ -28,6 +28,11 @@ from core.costs import calculate_order_of_magnitude_estimate
 # =============================================================================
 SHOW_ADVANCED_ECONOMICS = True
 
+# What the CapEx column is, shown under Tables A and B and in the PNG export
+CAPEX_NOTE = ("CapEx is the same calculation as the Capital Estimate in the Economics Analysis table: "
+              "equipment × 1.15 installation × 1.10 engineering × 1.10 contingency (× 1.3915), "
+              "rounded to €500, shown in K€.")
+
 @contextmanager
 def suppress_logging():
     """Context manager to suppress logging output and print statements."""
@@ -506,6 +511,8 @@ def display_advanced_economics(output_area, wha: float, T1: float, temp_rise: fl
 
         # Use ipywidgets.interactive for Colab compatibility
         # This creates a self-contained interactive widget that works in Colab
+        capex_note_html = f'<p style="margin: 6px 0 0 0; color: #555555; font-size: 12px;">{CAPEX_NOTE}</p>'
+
         def render_with_params(payback_yrs, on_stream_hrs):
             """Render analysis with given parameters - called by interactive."""
             try:
@@ -522,6 +529,7 @@ def display_advanced_economics(output_area, wha: float, T1: float, temp_rise: fl
                         f"Table A: {wha} MW System - Variable Approach Temperature"
                     )
                     display(HTML(table_a))
+                    display(HTML(capex_note_html))
 
                 # Chart 1: Annual Costs vs Approach
                 chart_header_1 = """
@@ -554,6 +562,7 @@ def display_advanced_economics(output_area, wha: float, T1: float, temp_rise: fl
                         f"Table B: {current_approach}°C Approach - Variable Capacity (Economy of Scale)"
                     )
                     display(HTML(table_b))
+                    display(HTML(capex_note_html))
 
                 # Chart 3: Economy of Scale
                 chart_header_3 = """

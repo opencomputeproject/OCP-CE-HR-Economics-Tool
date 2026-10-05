@@ -18,24 +18,29 @@ class Colors:
     BOLD = '\033[1m'
     END = '\033[0m'
 
+# Plain text when output goes to a file or pipe, so a saved log has no escape codes
+if not sys.stdout.isatty():
+    for _name in ("GREEN", "YELLOW", "RED", "BLUE", "BOLD", "END"):
+        setattr(Colors, _name, "")
+
 def print_status(message, status="INFO"):
     """Print colored status messages"""
     colors = {
-        "PASS": Colors.GREEN + "✓",
-        "FAIL": Colors.RED + "✗", 
-        "WARN": Colors.YELLOW + "⚠",
-        "INFO": Colors.BLUE + "ℹ"
+        "PASS": Colors.GREEN + "[PASS]",
+        "FAIL": Colors.RED + "[FAIL]",
+        "WARN": Colors.YELLOW + "[WARN]",
+        "INFO": Colors.BLUE + "[INFO]"
     }
     print(f"{colors.get(status, '')} {message}{Colors.END}")
 
 def check_python_version():
-    """Verify Python version is 3.8+"""
+    """Verify Python version is 3.10+"""
     version = sys.version_info
-    if version.major == 3 and version.minor >= 8:
+    if version.major == 3 and version.minor >= 10:
         print_status(f"Python {version.major}.{version.minor}.{version.micro}", "PASS")
         return True
     else:
-        print_status(f"Python {version.major}.{version.minor}.{version.micro} - Need 3.8+", "FAIL")
+        print_status(f"Python {version.major}.{version.minor}.{version.micro} - Need 3.10+", "FAIL")
         return False
 
 def check_pip():
@@ -333,14 +338,14 @@ def run_full_verification():
     print(f"\n{Colors.BOLD}Overall Status: {passed}/{total} checks passed{Colors.END}")
     
     if passed == total:
-        print_status("🎉 All checks passed! Heat Reuse Tool should work correctly.", "PASS")
+        print_status("All checks passed! Heat Reuse Tool should work correctly.", "PASS")
         return True
     elif passed >= total * 0.8:  # 80% pass rate
-        print_status("⚠️  Most checks passed. Minor issues may affect functionality.", "WARN")
+        print_status("Most checks passed. Minor issues may affect functionality.", "WARN")
         print_recommendations(all_checks)
         return False
     else:
-        print_status("❌ Multiple critical issues found. Setup needs attention.", "FAIL")
+        print_status("Multiple critical issues found. Setup needs attention.", "FAIL")
         print_recommendations(all_checks)
         return False
 
@@ -352,7 +357,7 @@ def print_recommendations(all_checks):
     
     recommendations = {
         "Python Version": [
-            "Install Python 3.8 or higher from https://python.org",
+            "Install Python 3.10 or higher from https://python.org",
             "Ensure 'Add to PATH' is checked during installation"
         ],
         "Pip Available": [
@@ -397,7 +402,7 @@ def print_recommendations(all_checks):
         if failed_check in recommendations:
             print(f"\n{Colors.YELLOW}For {failed_check}:{Colors.END}")
             for rec in recommendations[failed_check]:
-                print(f"  • {rec}")
+                print(f"  - {rec}")
 
 def quick_check():
     """Run a quick essential-only check"""
@@ -405,7 +410,7 @@ def quick_check():
     print("=" * 40)
     
     essential_checks = [
-        ("Python 3.8+", check_python_version()),
+        ("Python 3.10+", check_python_version()),
         ("Required packages", check_required_packages()),
         ("Project structure", check_project_structure()),
         ("CSV files", check_csv_files())
@@ -419,9 +424,9 @@ def quick_check():
                     "PASS" if status else "FAIL")
     
     if passed == total:
-        print_status(f"✓ Quick check passed ({passed}/{total})", "PASS")
+        print_status(f"Quick check passed ({passed}/{total})", "PASS")
     else:
-        print_status(f"✗ Quick check failed ({passed}/{total})", "FAIL")
+        print_status(f"Quick check failed ({passed}/{total})", "FAIL")
     
     return passed == total
 
