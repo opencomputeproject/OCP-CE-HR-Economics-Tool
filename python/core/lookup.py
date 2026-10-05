@@ -139,6 +139,31 @@ def lookup_allhx_data(wha: float, T1: float, itdt: float, approach: float) -> Op
     
     return result
 
+def get_available_approaches() -> list:
+    """
+    Approach temperatures that have heat exchanger data in ALLHX.csv.
+
+    Rows are cleaned the same way as in lookup_allhx_data, so the list matches
+    what a lookup can find. Returns an empty list if ALLHX is not loaded.
+
+    Example:
+        >>> get_available_approaches()
+        [2.0, 3.0, 5.0]
+    """
+    if not is_csv_loaded('ALLHX'):
+        return []
+    df = get_csv_data('ALLHX')
+    if df is None:
+        return []
+
+    df = df.copy()
+    df = df[df['wha'].astype(str).str.strip() != 'A']
+    df = df[df['wha'].astype(str).str.strip() != 'wha']
+    for col in ['wha', 'T1', 'itdt', 'TCSapp']:
+        df[col] = df[col].apply(lambda x: float(universal_float_convert(x)))
+    valid_df = df[(df['wha'] > 0) & (df['T1'] > 0) & (df['itdt'] > 0) & (df['TCSapp'] > 0)]
+    return sorted(valid_df['TCSapp'].unique().tolist())
+
 def get_lookup_value(csv_name: str, lookup_value: Any, col_index_lookup: int = 0, col_index_return: Union[int, str, list] = 1) -> Any:
     """
     Look up a value in a CSV file based on finding the first value 

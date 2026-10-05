@@ -221,18 +221,36 @@ def display_validation_errors(output_area, errors):
         html_content = create_validation_errors_html(errors)
         display(HTML(html_content))
 
-def display_no_data_error(output_area):
+def no_data_message(approach, available):
+    """
+    Message for a combination with no data.
+
+    If the selected approach has no rows at all in the heat exchanger data,
+    say so and list the approaches that do. Otherwise use the general message.
+
+    Args:
+        approach: Selected approach temperature in °C
+        available: Approaches present in the data (from get_available_approaches)
+    """
+    if available and approach not in available:
+        listed = ", ".join(f"{a:g}" for a in available)
+        return (f"Data for a {approach:g} °C approach is not yet available. "
+                f"Available approaches: {listed} °C.")
+    return "No data found for the selected parameters. Please try a different combination."
+
+def display_no_data_error(output_area, approach=None):
     """
     Display error when no data is found for selected parameters.
-    
+
     Args:
         output_area: Output widget to display in
+        approach: Selected approach temperature in °C, if known
     """
+    from core.lookup import get_available_approaches
+
+    available = get_available_approaches() if approach is not None else []
     with output_area:
-        html_content = create_error_html(
-            "No data found for the selected parameters. Please try a different combination.",
-            'error'
-        )
+        html_content = create_error_html(no_data_message(approach, available), 'error')
         display(HTML(html_content))
 
 def display_error(output_area, message, message_type='error'):

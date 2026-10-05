@@ -75,7 +75,7 @@ def create_calculate_handler(widgets_dict, outputs_dict, core_functions):
             if analysis:
                 display_complete_analysis(outputs_dict, analysis)
             else:
-                display_no_data_error(outputs_dict['system_params'])
+                display_no_data_error(outputs_dict['system_params'], approach)
                 
         except Exception as e:
             # Clear any loading messages and show error
